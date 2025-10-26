@@ -60,8 +60,9 @@ st.title("Westlotto TOTO-Ergebniswette Scraper")
 st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und bietet sie zum Download an.")
 
 # 📁 Dokumente-Verzeichnis (lokal oder Binder)
-output_dir = Path(os.path.expanduser("~/Documents"))
+output_dir = Path("downloads")
 output_dir.mkdir(exist_ok=True)
+
 
 if st.button("🔄 Tabellen abrufen und speichern"):
     with st.spinner("Lade Daten von Westlotto... bitte warten ⏳"):
