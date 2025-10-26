@@ -2,7 +2,9 @@ services:
   - type: web
     name: westlotto-scraper
     env: python
+    region: frankfurt
     buildCommand: ./build.sh
     startCommand: streamlit run app.py
     repo: https://github.com/gitMatthias/ottopipe
     branch: main
+    autoDeploy: true
