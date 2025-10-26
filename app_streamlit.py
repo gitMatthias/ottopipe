@@ -71,7 +71,7 @@ if st.button("🔄 Tabellen abrufen und speichern"):
         with open(file_path, "r", encoding="utf-8") as f:
             data = f.read()
         st.download_button(
-            label=f"📄 {file_path.name} herunterladen",
+            label=f"📄 {file_path.name} herunterladen ",
             data=data,
             file_name=file_path.name,
             mime="text/plain"
