@@ -5,6 +5,15 @@ from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 from datetime import datetime
 import os
+import subprocess
+
+# 🔧 Installiere Browser-Binaries, falls sie fehlen
+def ensure_playwright_browsers():
+    cache_path = Path.home() / ".cache/ms-playwright"
+    if not cache_path.exists() or not any(cache_path.iterdir()):
+        subprocess.run(["playwright", "install"], check=True)
+
+ensure_playwright_browsers()
 
 def get_suffix(soup):
     headers = [th.get_text(strip=True).lower() for th in soup.select("thead th")]
