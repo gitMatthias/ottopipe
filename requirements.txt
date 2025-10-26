@@ -1,4 +1,8 @@
-streamlit==1.50.0
-playwright==1.37.0
-greenlet==2.0.2
+#streamlit==1.50.0
+#playwright==1.37.0
+#greenlet==2.0.2
+#beautifulsoup4
+### for streamlit.app
+streamlit
+playwright
 beautifulsoup4
