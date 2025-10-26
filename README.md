@@ -8,6 +8,8 @@ Klicke auf den folgenden Link, um das Skript direkt in Binder auszuführen:
 
 [▶️ Starte in Binder](https://mybinder.org/v2/gh/gitMatthias/ottopipe/main?urlpath=streamlit/app.py)
 
+[▶️ Starte in Binder](https://mybinder.org/v2/gh/gitMatthias/ottopipe/main)
+
 
 ## Voraussetzungen
 
