@@ -1,7 +1,5 @@
-# Basis-Image mit Python 3.10
 FROM python:3.10-slim
 
-# Systembibliotheken für Chromium
 RUN apt-get update && apt-get install -y \
     libnspr4 \
     libnss3 \
@@ -19,18 +17,12 @@ RUN apt-get update && apt-get install -y \
     unzip \
     curl
 
-# Arbeitsverzeichnis
 WORKDIR /app
 
-# Python-Abhängigkeiten
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# Playwright-Browser installieren
 RUN playwright install
 
-# App-Code kopieren
 COPY . .
 
-# Startbefehl
-CMD ["streamlit", "run", "app.py", "--server.port=10000", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app.py", "--server.port=8080", "--server.address=0.0.0.0"]
