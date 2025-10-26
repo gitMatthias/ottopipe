@@ -6,7 +6,8 @@ Dieses Projekt lädt die neuesten TOTO-Ergebniswette-Tabellen von westlotto.de h
 
 Klicke auf den folgenden Link, um das Skript direkt in Binder auszuführen:
 
-[▶️ Starte in Binder](https://mybinder.org/v2/gh/matthias-westlotto-scraper/main?filepath=westlotto_scraper.py)
+[▶️ Starte in Binder](https://mybinder.org/v2/gh/gitMatthias/ottopipe/main?urlpath=streamlit/app.py)
+
 
 ## Voraussetzungen
 
