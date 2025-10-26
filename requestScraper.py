@@ -1,7 +1,10 @@
-import requests
+import streamlit as st
+from pathlib import Path
 from bs4 import BeautifulSoup
 from datetime import datetime
-from pathlib import Path
+import requests
+import zipfile
+import io
 
 BASE_URL = "https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html"
 output_dir = Path("downloads")
@@ -42,8 +45,38 @@ def scrape_table_for_date(datum):
 
 def scrape_all():
     dates = get_available_dates()
-    return [scrape_table_for_date(d) for d in dates]
+    return [scrape_table_for_date(d) for d in dates if scrape_table_for_date(d)]
 
-if __name__ == "__main__":
-    files = scrape_all()
-    print("Gespeichert:", files)
+# 🎯 Streamlit UI
+st.title("Westlotto TOTO-Ergebniswette Scraper")
+st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und bietet sie zum Download an.")
+
+if st.button("🔄 Tabellen abrufen und speichern"):
+    with st.spinner("Lade Daten von Westlotto... bitte warten ⏳"):
+        try:
+            files = scrape_all()
+            if not files:
+                st.warning("Keine Tabellen gefunden.")
+                st.stop()
+            st.success(f"{len(files)} Dateien erfolgreich gespeichert!")
+        except Exception as e:
+            st.error(f"Fehler beim Abrufen: {e}")
+            st.stop()
+
+    # 📦 ZIP-Datei erstellen
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in files:
+            zip_file.write(file_path, arcname=file_path.name)
+    zip_buffer.seek(0)
+
+    st.download_button(
+        label="📦 Alle Tabellen als ZIP herunterladen",
+        data=zip_buffer,
+        file_name="toto_tabellen.zip",
+        mime="application/zip"
+    )
+
+    st.info("Klicke auf den Button, um alle Tabellen gesammelt als ZIP-Datei herunterzuladen.")
+else:
+    st.info("Klicke auf den Button oben, um die aktuellen Toto-Tabellen zu laden.")
