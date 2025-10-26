@@ -1,39 +1,50 @@
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+from datetime import datetime
+
+def get_suffix(soup):
+    headers = [th.get_text(strip=True).lower() for th in soup.select("thead th")]
+    if any("ergebnis" in h for h in headers):
+        return "Ergebnis"
+    elif any("tendenz" in h for h in headers):
+        return "Tipps"
+    return "Unbekannt"
 
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=False)
+    browser = p.chromium.launch(headless=True)
     page = browser.new_page()
-    page.goto("https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html?datum=2025-11-01")
-    page.wait_for_selector('table.table--toto-ergebniswette')
+    page.goto("https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html")
 
-    table_html = page.locator('table.table--toto-ergebniswette').inner_html()
-    soup = BeautifulSoup(table_html, "html.parser")
+    # Dropdown auslesen
+    page.wait_for_selector('select[name="datum"]')
+    options = page.locator('select[name="datum"] option').all()
+    daten = [opt.get_attribute("value") for opt in options if opt.get_attribute("value")]
 
-    # Entferne alle Elemente mit class="hidden-print"
-    for hidden in soup.select(".hidden-print"):
-        hidden.decompose()
+    # Sortieren nach Datum (neueste zuerst)
+    daten_sorted = sorted(daten, key=lambda d: datetime.strptime(d, "%Y-%m-%d"), reverse=True)
+    neueste = daten_sorted[:3]
 
-    # Finde die Indexposition der Spalte mit dem Titel "Spiel"
-    spiel_index = None
-    header_row = soup.find("thead").find("tr")
-    headers = header_row.find_all("th")
-    for i, th in enumerate(headers):
-        if th.get_text(strip=True).lower() == "spiel":
-            spiel_index = i
-            th.decompose()  # Entferne die Header-Zelle
-            break
+    for datum in neueste:
+        url = f"https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html?datum={datum}"
+        page.goto(url)
+        page.wait_for_selector('table.table--toto-ergebniswette')
 
-    # Entferne die entsprechende <td> aus jeder Zeile im <tbody>
-    if spiel_index is not None:
-        for row in soup.find("tbody").find_all("tr"):
-            cells = row.find_all("td")
-            if len(cells) > spiel_index:
-                cells[spiel_index].decompose()
+        # Tabelle extrahieren
+        table_html = page.locator('table.table--toto-ergebniswette').inner_html()
+        soup = BeautifulSoup(table_html, "html.parser")
 
-    # Bereinigten HTML-Code als Text speichern
-    with open("toto_tabelle.txt", "w", encoding="utf-8") as f:
-        f.write(str(soup))
+        # Bereinigen
+        for hidden in soup.select(".hidden-print"):
+            hidden.decompose()
 
-    print("✅ Spalte 'Spiel' entfernt und Tabelle gespeichert als 'toto_tabelle.txt'")
+        # Typ erkennen
+        suffix = get_suffix(soup)
+
+        # Speichern
+        filename = f"toto_tabelle_{datum}_{suffix}.csv"
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write(str(soup))
+
+        print(f"✅ {datum}: Tabelle gespeichert als '{filename}'")
+
     browser.close()
