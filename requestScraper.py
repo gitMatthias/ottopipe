@@ -37,10 +37,10 @@ def scrape_table_for_date(datum):
         hidden.decompose()
 
     suffix = get_suffix(soup)
-    filename = f"toto_tabelle_{datum}_{suffix}.txt"
+    filename = f"toto_tabelle_{datum}_{suffix}.html"
     filepath = output_dir / filename
     with open(filepath, "w", encoding="utf-8") as f:
-        f.write(str(table))
+        f.write(table.prettify())
     return filepath
 
 def scrape_all():
