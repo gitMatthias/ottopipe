@@ -1,14 +1,12 @@
 # Westlotto Scraper
 
-Dieses Projekt lädt die neuesten TOTO-Ergebniswette-Tabellen von westlotto.de herunter und speichert sie im Dokumente-Ordner des aktuellen Nutzers.
+Dieses Tool lädt die neuesten TOTO-Ergebniswette-Tabellen von westlotto.de und speichert sie im Dokumente-Ordner des Nutzers.
 
-## Ausführen in Binder
+## ▶️ Ausführen in Binder
 
-Klicke auf den folgenden Link, um das Skript direkt in Binder auszuführen:
-
-[▶️ Starte in Binder](https://mybinder.org/v2/gitMatthias/ottopipe/main?filepath=westlotto_scraper.py)
+[Starte das Programm in Binder](https://mybinder.org/v2/gh/gitMatthias/ottopipe/main?filepath=westlotto_scraper.py)
 
 ## Voraussetzungen
 
-- Das Skript verwendet Playwright und BeautifulSoup
-- Beim Start wird eine Bestätigung in der Konsole verlangt
+- Keine lokale Installation nötig
+- Playwright wird automatisch eingerichtet
