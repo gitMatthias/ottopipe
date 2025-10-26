@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 import os
 import subprocess
+import zipfile
+import io
 
 # 🔧 Installiere Browser-Binaries, falls sie fehlen
 def ensure_playwright_browsers():
@@ -76,16 +78,20 @@ if st.button("🔄 Tabellen abrufen und speichern"):
             st.stop()
         st.success("✅ Tabellen gespeichert:")
 
-    for file_path in files:
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = f.read()
-        st.download_button(
-            label=f"📄 {file_path.name} herunterladen ",
-            data=data,
-            file_name=file_path.name,
-            mime="text/plain"
-        )
+    # 📦 ZIP-Datei erstellen
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in files:
+            zip_file.write(file_path, arcname=file_path.name)
+    zip_buffer.seek(0)
 
-    st.info("Klicke auf die Buttons, um die Tabellen als Textdatei herunterzuladen.")
+    st.download_button(
+        label="📦 Alle Tabellen als ZIP herunterladen",
+        data=zip_buffer,
+        file_name="toto_tabellen.zip",
+        mime="application/zip"
+    )
+
+    st.info("Klicke auf den Button, um alle Tabellen gesammelt als ZIP-Datei herunterzuladen.")
 else:
     st.info("Klicke auf den Button oben, um die aktuellen Toto-Tabellen zu laden.")
