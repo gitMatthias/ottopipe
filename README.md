@@ -1,23 +1,21 @@
-# Westlotto Scraper
+# OTTOPIPE Scraper
 
-Dieses Tool lädt die neuesten TOTO-Ergebniswette-Tabellen von westlotto.de und speichert sie im Download-Ordner des Nutzers.
+Dieses Tool lädt die neuesten Ergebniswette-Tabellen von westlotto.de und speichert sie im Download-Ordner des Nutzers.
 
 ## ▶️ Ausführen in Binder
 
-Klicke auf den folgenden Link, um das Skript direkt in Binder auszuführen:
+Klicke auf den folgenden Link, um das Skript direkt auf Render.com zu starten:
 
-[▶️ Starte in Binder](https://mybinder.org/v2/gh/gitMatthias/ottopipe/main?urlpath=streamlit/app.py)
-
-[▶️ Starte in Binder](https://mybinder.org/v2/gh/gitMatthias/ottopipe/main)
+[▶️ Starte auf Render](https://ottopipe-0g3q.onrender.com)
 
 
 ## Voraussetzungen
 
 - Keine lokale Installation nötig
-- Playwright wird automatisch eingerichtet
+- kein Playwright nötig, alles per requests
 
-⚙️ Hinweis: Die Binder-Umgebung installiert Playwright automatisch über postBuild. Stelle sicher, dass requirements.txt und postBuild korrekt eingerichtet sind.
+⚙️ Hinweis: Die Render-Umgebung fährt nach 15 Minuten runter. Beim Klick auf den Link wird der Container neu gestartet, was bis zu einer Minute dauern kann.
 
 ## 📁 Gespeicherte Dateien
 
-Die Tabellen werden als `.txt`-Dateien gespeichert und können direkt über die Streamlit-Oberfläche heruntergeladen werden.
+Die Tabellen werden als `.html`-Dateien erzeugt und können in einer ZIP-Datei heruntergeladen werden.
