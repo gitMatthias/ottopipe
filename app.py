@@ -10,6 +10,31 @@ BASE_URL = "https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebnisw
 output_dir = Path("downloads")
 output_dir.mkdir(exist_ok=True)
 
+# 💅 CSS Styling for light & dark mode
+st.markdown("""
+    <style>
+        thead {
+            background-color: transparent !important;
+        }
+        tbody {
+            background-color: #f2f2f2;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            tbody {
+                background-color: #2a2a2a;
+                color: #f0f0f0;
+            }
+            thead {
+                color: #ffffff;
+            }
+            table, th, td {
+                border-color: #444 !important;
+            }
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 def get_available_dates():
     res = requests.get(BASE_URL)
     soup = BeautifulSoup(res.text, "html.parser")
@@ -53,17 +78,6 @@ def scrape_all():
 
 # 🎯 Streamlit UI
 st.title("Westlotto TOTO-Ergebniswette Scraper")
-st.markdown("""
-    <style>
-        thead {
-            background-color: transparent !important;
-        }
-        tbody {
-            background-color: #f2f2f2;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
 st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und bietet sie zum Download an.")
 
 if st.button("🔄 Tabellen abrufen und speichern"):
@@ -94,7 +108,7 @@ if st.button("🔄 Tabellen abrufen und speichern"):
 
     st.info("Klicke auf den Button, um alle Tabellen gesammelt als ZIP-Datei herunterzuladen.")
 
-    # 📊 Immer sichtbare Vorschau
+    # 📊 Vorschau der Tabellen
     st.subheader("📊 Vorschau der extrahierten Tabellen")
     for file_path, html in results:
         st.markdown(f"### 📄 {file_path.name}")
