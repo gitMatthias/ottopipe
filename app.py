@@ -39,26 +39,41 @@ def scrape_table_for_date(datum):
     suffix = get_suffix(soup)
     filename = f"toto_tabelle_{datum}_{suffix}.html"
     filepath = output_dir / filename
+    html_content = table.prettify()
+
     with open(filepath, "w", encoding="utf-8") as f:
-        f.write(table.prettify())
-    return filepath
+        f.write(html_content)
+
+    return filepath, html_content
 
 def scrape_all():
     dates = get_available_dates()
-    return [scrape_table_for_date(d) for d in dates if scrape_table_for_date(d)]
+    results = [scrape_table_for_date(d) for d in dates if scrape_table_for_date(d)]
+    return [r for r in results if r]
 
 # 🎯 Streamlit UI
 st.title("Westlotto TOTO-Ergebniswette Scraper")
+st.markdown("""
+    <style>
+        thead {
+            background-color: transparent !important;
+        }
+        tbody {
+            background-color: #f2f2f2;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und bietet sie zum Download an.")
 
 if st.button("🔄 Tabellen abrufen und speichern"):
     with st.spinner("Lade Daten von Westlotto... bitte warten ⏳"):
         try:
-            files = scrape_all()
-            if not files:
+            results = scrape_all()
+            if not results:
                 st.warning("Keine Tabellen gefunden.")
                 st.stop()
-            st.success(f"{len(files)} Dateien erfolgreich gespeichert!")
+            st.success(f"{len(results)} Dateien erfolgreich gespeichert!")
         except Exception as e:
             st.error(f"Fehler beim Abrufen: {e}")
             st.stop()
@@ -66,7 +81,7 @@ if st.button("🔄 Tabellen abrufen und speichern"):
     # 📦 ZIP-Datei erstellen
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-        for file_path in files:
+        for file_path, _ in results:
             zip_file.write(file_path, arcname=file_path.name)
     zip_buffer.seek(0)
 
@@ -78,5 +93,11 @@ if st.button("🔄 Tabellen abrufen und speichern"):
     )
 
     st.info("Klicke auf den Button, um alle Tabellen gesammelt als ZIP-Datei herunterzuladen.")
+
+    # 📊 Immer sichtbare Vorschau
+    st.subheader("📊 Vorschau der extrahierten Tabellen")
+    for file_path, html in results:
+        st.markdown(f"### 📄 {file_path.name}")
+        st.markdown(html, unsafe_allow_html=True)
 else:
     st.info("Klicke auf den Button oben, um die aktuellen Toto-Tabellen zu laden.")
