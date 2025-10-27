@@ -1,4 +1,4 @@
-# 🧾 Westlotto TOTO-Ergebniswette Scraper
+# 🧾 OTTOPIPE Scraper
 
 Dieses Tool lädt die neuesten drei TOTO-Ergebniswette-Tabellen von [westlotto.de](https://www.westlotto.de) und bietet sie als `.html`-Dateien zum Download an — gesammelt als ZIP über eine benutzerfreundliche Streamlit-Oberfläche.
 
@@ -17,12 +17,14 @@ Dieses Tool lädt die neuesten drei TOTO-Ergebniswette-Tabellen von [westlotto.d
 
 Folgende Dateien müssen im GitHub-Repo (`ottopipe`) enthalten sein:
 
+
+```bash
 ottopipe/ 
 ├── app.py # Hauptskript mit Streamlit UI und Scraping-Logik 
 ├── requirements.txt # Python-Abhängigkeiten 
 ├── render.yaml # Render-Konfiguration für automatisches Deployment 
 ├── downloads/ # Wird zur Laufzeit erstellt, enthält die gespeicherten Tabellen
-
+```
 
 ---
 
@@ -61,7 +63,7 @@ Wähle dein GitHub-Repo ottopipe
 
 Render erkennt automatisch render.yaml und startet den Build
 
-Deine App ist erreichbar unter https://ottopipe-xxxx.onrender.com
+Deine App ist erreichbar unter https://ottopipe-0g3q.onrender.com
 
 Du kannst optional eine eigene Domain verbinden unter Settings > Custom Domains
 
