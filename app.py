@@ -7,6 +7,7 @@ import zipfile
 import io
 
 BASE_URL = "https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html"
+BONUS_URL = "https://www.westlotto.de/infos-und-zahlen/gewinnzahlen/toto-ergebniswette/toto-ergebniswette-gewinnzahlen.html"
 output_dir = Path("downloads")
 output_dir.mkdir(exist_ok=True)
 
@@ -76,9 +77,36 @@ def scrape_all():
     results = [scrape_table_for_date(d) for d in dates if scrape_table_for_date(d)]
     return [r for r in results if r]
 
+def get_latest_bonus_numbers():
+    res = requests.get(BONUS_URL)
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    # Datum aus <p class="heading-h3">Ergebnisse Wettrunde …
+    heading = soup.find("p", class_="heading-h3")
+    datum_text = heading.get_text(strip=True) if heading else "Unbekannt"
+
+    # Spiel 77
+    spiel77 = soup.find(string=lambda t: "Spiel 77" in t)
+    spiel77_numbers = spiel77.find_next().text.strip() if spiel77 else "Nicht gefunden"
+
+    # SUPER 6
+    super6 = soup.find(string=lambda t: "SUPER 6" in t)
+    super6_numbers = super6.find_next().text.strip() if super6 else "Nicht gefunden"
+
+    return datum_text, spiel77_numbers, super6_numbers
+
 # 🎯 Streamlit UI
 st.title("Westlotto TOTO-Ergebniswette Scraper")
-st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und bietet sie zum Download an.")
+st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und zeigt die aktuellen Gewinnzahlen von Spiel 77 und SUPER 6.")
+
+# 🎯 Bonuszahlen anzeigen
+try:
+    datum_text, spiel77, super6 = get_latest_bonus_numbers()
+    st.subheader(f"🎯 Aktuelle Zusatzspielzahlen ({datum_text})")
+    st.markdown(f"**Spiel 77:** `{spiel77}`")
+    st.markdown(f"**SUPER 6:** `{super6}`")
+except Exception as e:
+    st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
 
 if st.button("🔄 Tabellen abrufen und speichern"):
     with st.spinner("Lade Daten von Westlotto... bitte warten ⏳"):
