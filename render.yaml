@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: westlotto-scraper
+    name: ottopipe-scraper
     env: python
     buildCommand: pip install -r requirements.txt
     repo: https://github.com/gitMatthias/ottopipe
