@@ -55,6 +55,8 @@ Melde dich bei Render an
 
 Erstelle ein neues Web Service-Projekt
 
+Start-Command ist "streamlit run app.py"
+
 Wähle dein GitHub-Repo ottopipe
 
 Render erkennt automatisch render.yaml und startet den Build
