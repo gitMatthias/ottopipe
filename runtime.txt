@@ -1,3 +1,0 @@
-# streamlit cloud
-#python-3.10
-
