@@ -63,7 +63,7 @@ def scrape_table_for_date(datum):
         hidden.decompose()
 
     suffix = get_suffix(soup)
-    filename = f"toto_tabelle_{datum}_{suffix}.html"
+    filename = f"tabelle_{datum}_{suffix}.html"
     filepath = output_dir / filename
     html_content = table.prettify()
 
@@ -96,8 +96,8 @@ def get_latest_bonus_numbers():
     return datum_text, spiel77_numbers, super6_numbers
 
 # 🎯 Streamlit UI
-st.title("Westlotto TOTO-Ergebniswette Scraper")
-st.write("Dieses Tool lädt die neuesten drei TOTO-Tabellen und zeigt die aktuellen Gewinnzahlen von Spiel 77 und SUPER 6.")
+st.title("OTTOPIPE Scraper")
+st.write("Dieses Tool lädt die neuesten drei Tabellen und zeigt die aktuellen Gewinnzahlen von Spiel 77 und SUPER 6.")
 
 # 🎯 Bonuszahlen anzeigen
 try:
@@ -109,7 +109,7 @@ except Exception as e:
     st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
 
 if st.button("🔄 Tabellen abrufen und speichern"):
-    with st.spinner("Lade Daten von Westlotto... bitte warten ⏳"):
+    with st.spinner("Lade Daten für OTTOPIPE ... bitte warten ⏳"):
         try:
             results = scrape_all()
             if not results:
@@ -130,7 +130,7 @@ if st.button("🔄 Tabellen abrufen und speichern"):
     st.download_button(
         label="📦 Alle Tabellen als ZIP herunterladen",
         data=zip_buffer,
-        file_name="toto_tabellen.zip",
+        file_name="tabellen.zip",
         mime="application/zip"
     )
 
@@ -142,4 +142,4 @@ if st.button("🔄 Tabellen abrufen und speichern"):
         st.markdown(f"### 📄 {file_path.name}")
         st.markdown(html, unsafe_allow_html=True)
 else:
-    st.info("Klicke auf den Button oben, um die aktuellen Toto-Tabellen zu laden.")
+    st.info("Klicke auf den Button oben, um die aktuellen Tabellen zu laden.")
