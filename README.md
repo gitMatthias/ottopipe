@@ -63,9 +63,7 @@ Wähle dein GitHub-Repo ottopipe
 
 Render erkennt automatisch render.yaml und startet den Build
 
-Deine App ist erreichbar unter https://ottopipe-0g3q.onrender.com
-
-Du kannst optional eine eigene Domain verbinden unter Settings > Custom Domains
+Die App ist erreichbar unter https://ottopipe-0g3q.onrender.com
 
 📥 Nutzung
 Öffne die Web-App
@@ -81,8 +79,3 @@ Keine Systempakete erforderlich — ideal für Render Free Tier
 
 Die Dateien werden lokal im Ordner downloads/ gespeichert und gepackt
 
-📬 Optional: Versand per E-Mail
-Für lokale Nutzung kann ein SMTP-Modul eingebaut werden, um die ZIP-Datei direkt zu versenden. Für Cloud-Deployment empfiehlt sich ein externer Dienst wie Mailgun oder SendGrid.
-
-🧠 Autor
-Matthias Wollnik Automatisierungsexperte mit Fokus auf robuste, benutzerfreundliche Python-Tools GitHub: gitMatthias
