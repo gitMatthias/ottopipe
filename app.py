@@ -99,15 +99,16 @@ def get_latest_bonus_numbers():
 st.title("OTTOPIPE Scraper")
 st.write("Dieses Tool lädt die neuesten drei Tabellen und zeigt die aktuellen Gewinnzahlen von Spiel 77 und SUPER 6.")
 
+# 🎯 Bonuszahlen anzeigen
+try:
+    datum_text, spiel77, super6 = get_latest_bonus_numbers()
+    st.subheader(f"🎯 Aktuelle Zusatzspielzahlen ({datum_text})")
+    st.markdown(f"**Spiel 77:** `{spiel77}`")
+    st.markdown(f"**SUPER 6:** `{super6}`")
+except Exception as e:
+    st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
+
 if st.button("🔄 Tabellen abrufen und speichern"):
-    # 🎯 Bonuszahlen anzeigen
-    try:
-        datum_text, spiel77, super6 = get_latest_bonus_numbers()
-        st.subheader(f"🎯 Aktuelle Zusatzspielzahlen ({datum_text})")
-        st.markdown(f"**Spiel 77:** `{spiel77}`")
-        st.markdown(f"**SUPER 6:** `{super6}`")
-    except Exception as e:
-        st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
     
     with st.spinner("Lade Daten für OTTOPIPE ... bitte warten ⏳"):
         try:
