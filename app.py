@@ -1,13 +1,15 @@
 import streamlit as st
 from pathlib import Path
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import zipfile
 import io
+import re
 
 BASE_URL = "https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html"
 BONUS_URL = "https://www.westlotto.de/infos-und-zahlen/gewinnzahlen/toto-ergebniswette/toto-ergebniswette-gewinnzahlen.html"
+NORMAL_URL = "https://www.westlotto.de/toto/ergebniswette/normalschein/toto-ergebniswette-normalschein.html"
 output_dir = Path("downloads")
 output_dir.mkdir(exist_ok=True)
 
@@ -36,12 +38,17 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+
+# ---------------------------------------------------------
+# 📅 Hilfsfunktionen
+# ---------------------------------------------------------
 def get_available_dates():
     res = requests.get(BASE_URL)
     soup = BeautifulSoup(res.text, "html.parser")
     options = soup.select('select[name="datum"] option')
     daten = [opt["value"] for opt in options if opt.get("value")]
     return sorted(daten, key=lambda d: datetime.strptime(d, "%Y-%m-%d"), reverse=True)[:3]
+
 
 def get_suffix(soup):
     headers = [th.get_text(strip=True).lower() for th in soup.select("thead th")]
@@ -50,6 +57,7 @@ def get_suffix(soup):
     elif any("tendenz" in h for h in headers):
         return "Tipps"
     return "Unbekannt"
+
 
 def scrape_table_for_date(datum):
     url = f"{BASE_URL}?datum={datum}"
@@ -72,32 +80,59 @@ def scrape_table_for_date(datum):
 
     return filepath, html_content
 
+
 def scrape_all():
     dates = get_available_dates()
     results = [scrape_table_for_date(d) for d in dates if scrape_table_for_date(d)]
     return [r for r in results if r]
 
+
 def get_latest_bonus_numbers():
     res = requests.get(BONUS_URL)
     soup = BeautifulSoup(res.text, "html.parser")
 
-    # Datum aus <p class="heading-h3">Ergebnisse Wettrunde …
     heading = soup.find("p", class_="heading-h3")
     datum_text = heading.get_text(strip=True) if heading else "Unbekannt"
 
-    # Spiel 77
     spiel77 = soup.find(string=lambda t: "Spiel 77" in t)
     spiel77_numbers = spiel77.find_next().text.strip() if spiel77 else "Nicht gefunden"
 
-    # SUPER 6
     super6 = soup.find(string=lambda t: "SUPER 6" in t)
     super6_numbers = super6.find_next().text.strip() if super6 else "Nicht gefunden"
 
     return datum_text, spiel77_numbers, super6_numbers
 
+
+def get_annahmeschluss():
+    """Liest den Annahmeschluss ('SA 14:59') von der Normalschein-Seite und berechnet das nächste Samstagdatum."""
+    res = requests.get(NORMAL_URL)
+    soup = BeautifulSoup(res.text, "html.parser")
+
+    text = soup.get_text(" ", strip=True)
+    match = re.search(r"\bSA\s*\d{1,2}[:.]\d{2}", text, re.IGNORECASE)
+    if not match:
+        raise ValueError("Annahmeschluss nicht gefunden")
+
+    # Uhrzeit extrahieren
+    time_match = re.search(r"(\d{1,2}[:.]\d{2})", match.group(0))
+    time_str = time_match.group(1).replace(".", ":")
+    annahme_time = datetime.strptime(time_str, "%H:%M").time()
+
+    # Nächsten Samstag berechnen (5 = Samstag)
+    today = datetime.today()
+    days_until_saturday = (5 - today.weekday()) % 7
+    next_saturday = today + timedelta(days=days_until_saturday)
+    annahmeschluss_datetime = datetime.combine(next_saturday.date(), annahme_time)
+
+    date_str = next_saturday.strftime("%A, %d.%m.%Y")
+    return date_str, annahmeschluss_datetime
+
+
+# ---------------------------------------------------------
 # 🎯 Streamlit UI
+# ---------------------------------------------------------
 st.title("OTTOPIPE Scraper")
-st.write("Dieses Tool lädt die neuesten drei Tabellen und zeigt die aktuellen Gewinnzahlen.")
+st.write("Dieses Tool lädt die neuesten drei Tabellen, zeigt die aktuellen Gewinnzahlen und den Annahmeschluss mit Countdown an.")
 
 # 🔘 Tabellen + Zusatzzahlen abrufen
 if st.button("🔄 Tabellen und Zusatzzahlen abrufen"):
@@ -112,12 +147,37 @@ if st.button("🔄 Tabellen und Zusatzzahlen abrufen"):
             # Zusatzspielzahlen holen
             try:
                 datum_text, spiel77, super6 = get_latest_bonus_numbers()
-                st.subheader(f"🎯 Aktuelle Zusatzspielzahlen")
-                st.subheader(f"  ({datum_text})")
-                st.markdown(f"**77:** `{spiel77}`")
-                st.markdown(f"**6:** `{super6}`")
+                st.subheader("🎯 Aktuelle Zusatzspielzahlen")
+                st.subheader(f"({datum_text})")
+                st.markdown(f"**Spiel 77:** `{spiel77}`")
+                st.markdown(f"**SUPER 6:** `{super6}`")
             except Exception as e:
                 st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
+
+            # 🕒 Annahmeschluss mit Countdown
+            try:
+                date_text, deadline = get_annahmeschluss()
+
+                # Countdown automatisch aktualisieren
+                st_autorefresh = getattr(st, "autorefresh", None)
+                if st_autorefresh:
+                    st_autorefresh(interval=1000, key="countdown_refresh")
+
+                now = datetime.now()
+                remaining = deadline - now
+
+                if remaining.total_seconds() <= 0:
+                    st.error("❌ Annahmeschluss erreicht!")
+                else:
+                    days = remaining.days
+                    hours, rem = divmod(remaining.seconds, 3600)
+                    minutes, seconds = divmod(rem, 60)
+                    st.info(
+                        f"📅 **{date_text}** — 🕒 **Annahmeschluss: {deadline.strftime('%H:%M Uhr')}**\n\n"
+                        f"⏳ Verbleibend: **{days} Tage, {hours:02d}:{minutes:02d}:{seconds:02d} Stunden**"
+                    )
+            except Exception as e:
+                st.warning(f"Fehler beim Laden des Annahmeschlusses: {e}")
 
             st.success(f"{len(results)} Dateien erfolgreich geladen!")
 
