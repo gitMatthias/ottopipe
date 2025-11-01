@@ -33,16 +33,11 @@ st.markdown("""
 # 📅 Hilfsfunktionen
 # ---------------------------------------------------------
 def get_available_dates():
-    try:
-        res = requests.get(BASE_URL)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, "html.parser")
-        options = soup.select('select[name="datum"] option')
-        daten = [opt["value"] for opt in options if opt.get("value")]
-        return sorted(daten, key=lambda d: datetime.strptime(d, "%Y-%m-%d"), reverse=True)[:3]
-    except Exception as e:
-        st.error(f"Fehler beim Abrufen der verfügbaren Daten: {e}")
-        return []
+    res = requests.get(BASE_URL)
+    soup = BeautifulSoup(res.text, "html.parser")
+    options = soup.select('select[name="datum"] option')
+    daten = [opt["value"] for opt in options if opt.get("value")]
+    return sorted(daten, key=lambda d: datetime.strptime(d, "%Y-%m-%d"), reverse=True)[:3]
 
 def get_suffix(soup):
     headers = [th.get_text(strip=True).lower() for th in soup.select("thead th")]
@@ -53,30 +48,25 @@ def get_suffix(soup):
     return "Unbekannt"
 
 def scrape_table_for_date(datum):
-    try:
-        url = f"{BASE_URL}?datum={datum}"
-        res = requests.get(url)
-        res.raise_for_status()
-        soup = BeautifulSoup(res.text, "html.parser")
-        table = soup.select_one("table.table--toto-ergebniswette")
-        if not table:
-            return None
-
-        for hidden in table.select(".hidden-print"):
-            hidden.decompose()
-
-        suffix = get_suffix(soup)
-        filename = f"tabelle_{datum}_{suffix}.html"
-        filepath = output_dir / filename
-        html_content = table.prettify()
-
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(html_content)
-
-        return filepath, html_content
-    except Exception as e:
-        st.warning(f"Fehler beim Abrufen der Tabelle für {datum}: {e}")
+    url = f"{BASE_URL}?datum={datum}"
+    res = requests.get(url)
+    soup = BeautifulSoup(res.text, "html.parser")
+    table = soup.select_one("table.table--toto-ergebniswette")
+    if not table:
         return None
+
+    for hidden in table.select(".hidden-print"):
+        hidden.decompose()
+
+    suffix = get_suffix(soup)
+    filename = f"tabelle_{datum}_{suffix}.html"
+    filepath = output_dir / filename
+    html_content = table.prettify()
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    return filepath, html_content
 
 def scrape_all():
     dates = get_available_dates()
@@ -89,7 +79,6 @@ def scrape_all():
 
 def get_latest_bonus_numbers():
     res = requests.get(BONUS_URL)
-    res.raise_for_status()
     soup = BeautifulSoup(res.text, "html.parser")
 
     heading = soup.find("p", class_="heading-h3")
@@ -105,7 +94,6 @@ def get_latest_bonus_numbers():
 
 def get_annahmeschluss():
     res = requests.get(NORMAL_URL)
-    res.raise_for_status()
     soup = BeautifulSoup(res.text, "html.parser")
 
     text = soup.get_text(" ", strip=True)
@@ -150,11 +138,12 @@ if st.button("🔄 Tabellen und Zusatzzahlen abrufen"):
 
             try:
                 date_text, deadline = get_annahmeschluss()
-                if hasattr(st, "autorefresh"):
-                    st.autorefresh(interval=1000, key="countdown_refresh")
-
                 now = datetime.now()
                 remaining = deadline - now
+
+                # 🔁 Countdown mit Autorefresh
+                if hasattr(st, "autorefresh"):
+                    st.autorefresh(interval=1000, key="countdown_refresh")
 
                 if remaining.total_seconds() <= 0:
                     st.error("❌ Annahmeschluss erreicht!")
