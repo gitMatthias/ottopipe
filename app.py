@@ -1,41 +1,37 @@
 import streamlit as st
 from pathlib import Path
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import zipfile
 import io
+import re
 
+# 🌐 URLs
 BASE_URL = "https://www.westlotto.de/toto/ergebniswette/spielplan/toto-ergebniswette-spielplan.html"
 BONUS_URL = "https://www.westlotto.de/infos-und-zahlen/gewinnzahlen/toto-ergebniswette/toto-ergebniswette-gewinnzahlen.html"
+NORMAL_URL = "https://www.westlotto.de/toto/ergebniswette/normalschein/toto-ergebniswette-normalschein.html"
+
+# 📁 Download-Verzeichnis
 output_dir = Path("downloads")
 output_dir.mkdir(exist_ok=True)
 
-# 💅 CSS Styling for light & dark mode
+# 💅 CSS Styling für Light & Dark Mode
 st.markdown("""
     <style>
-        thead {
-            background-color: transparent !important;
-        }
-        tbody {
-            background-color: #f2f2f2;
-        }
-
+        thead { background-color: transparent !important; }
+        tbody { background-color: #f2f2f2; }
         @media (prefers-color-scheme: dark) {
-            tbody {
-                background-color: #2a2a2a;
-                color: #f0f0f0;
-            }
-            thead {
-                color: #ffffff;
-            }
-            table, th, td {
-                border-color: #444 !important;
-            }
+            tbody { background-color: #2a2a2a; color: #f0f0f0; }
+            thead { color: #ffffff; }
+            table, th, td { border-color: #444 !important; }
         }
     </style>
 """, unsafe_allow_html=True)
 
+# ---------------------------------------------------------
+# 📅 Hilfsfunktionen
+# ---------------------------------------------------------
 def get_available_dates():
     res = requests.get(BASE_URL)
     soup = BeautifulSoup(res.text, "html.parser")
@@ -74,50 +70,93 @@ def scrape_table_for_date(datum):
 
 def scrape_all():
     dates = get_available_dates()
-    results = [scrape_table_for_date(d) for d in dates if scrape_table_for_date(d)]
-    return [r for r in results if r]
+    results = []
+    for d in dates:
+        result = scrape_table_for_date(d)
+        if result:
+            results.append(result)
+    return results
 
 def get_latest_bonus_numbers():
     res = requests.get(BONUS_URL)
     soup = BeautifulSoup(res.text, "html.parser")
 
-    # Datum aus <p class="heading-h3">Ergebnisse Wettrunde …
     heading = soup.find("p", class_="heading-h3")
     datum_text = heading.get_text(strip=True) if heading else "Unbekannt"
 
-    # Spiel 77
     spiel77 = soup.find(string=lambda t: "Spiel 77" in t)
     spiel77_numbers = spiel77.find_next().text.strip() if spiel77 else "Nicht gefunden"
 
-    # SUPER 6
     super6 = soup.find(string=lambda t: "SUPER 6" in t)
     super6_numbers = super6.find_next().text.strip() if super6 else "Nicht gefunden"
 
     return datum_text, spiel77_numbers, super6_numbers
 
-# 🎯 Streamlit UI
-st.title("OTTOPIPE Scraper")
-st.write("Dieses Tool lädt die neuesten drei Tabellen und zeigt die aktuellen Gewinnzahlen.")
+def get_annahmeschluss():
+    res = requests.get(NORMAL_URL)
+    soup = BeautifulSoup(res.text, "html.parser")
 
-# 🔘 Tabellen + Zusatzzahlen abrufen
+    text = soup.get_text(" ", strip=True)
+    match = re.search(r"\bSA\s*\d{1,2}[:.]\d{2}", text, re.IGNORECASE)
+    if not match:
+        raise ValueError("Annahmeschluss nicht gefunden")
+
+    time_match = re.search(r"(\d{1,2}[:.]\d{2})", match.group(0))
+    time_str = time_match.group(1).replace(".", ":")
+    annahme_time = datetime.strptime(time_str, "%H:%M").time()
+
+    today = datetime.today()
+    days_until_saturday = (5 - today.weekday()) % 7
+    next_saturday = today + timedelta(days=days_until_saturday)
+    annahmeschluss_datetime = datetime.combine(next_saturday.date(), annahme_time)
+
+    date_str = next_saturday.strftime("%A, %d.%m.%Y")
+    return date_str, annahmeschluss_datetime
+
+# ---------------------------------------------------------
+# 🎯 Streamlit UI
+# ---------------------------------------------------------
+st.title("OTTOPIPE Scraper")
+st.write("Dieses Tool lädt die neuesten drei Tabellen, zeigt die aktuellen Gewinnzahlen und den Annahmeschluss mit Countdown an.")
+
 if st.button("🔄 Tabellen und Zusatzzahlen abrufen"):
     with st.spinner("Lade Daten für OTTOPIPE ... bitte warten ⏳"):
         try:
-            # Tabellen laden
             results = scrape_all()
             if not results:
                 st.warning("Keine Tabellen gefunden.")
                 st.stop()
 
-            # Zusatzspielzahlen holen
             try:
                 datum_text, spiel77, super6 = get_latest_bonus_numbers()
-                st.subheader(f"🎯 Aktuelle Zusatzspielzahlen")
-                st.subheader(f"  ({datum_text})")
-                st.markdown(f"**77:** `{spiel77}`")
-                st.markdown(f"**6:** `{super6}`")
+                st.subheader("🎯 Aktuelle Zusatzspielzahlen")
+                st.subheader(f"({datum_text})")
+                st.markdown(f"**Spiel 77:** `{spiel77}`")
+                st.markdown(f"**SUPER 6:** `{super6}`")
             except Exception as e:
                 st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
+
+            try:
+                date_text, deadline = get_annahmeschluss()
+                now = datetime.now()
+                remaining = deadline - now
+
+                # 🔁 Countdown mit Autorefresh
+                if hasattr(st, "autorefresh"):
+                    st.autorefresh(interval=1000, key="countdown_refresh")
+
+                if remaining.total_seconds() <= 0:
+                    st.error("❌ Annahmeschluss erreicht!")
+                else:
+                    days = remaining.days
+                    hours, rem = divmod(remaining.seconds, 3600)
+                    minutes, seconds = divmod(rem, 60)
+                    st.info(
+                        f"📅 **{date_text}** — 🕒 **Annahmeschluss: {deadline.strftime('%H:%M Uhr')}**\n\n"
+                        f"⏳ Verbleibend: **{days} Tage, {hours:02d}:{minutes:02d}:{seconds:02d} Stunden**"
+                    )
+            except Exception as e:
+                st.warning(f"Fehler beim Laden des Annahmeschlusses: {e}")
 
             st.success(f"{len(results)} Dateien erfolgreich geladen!")
 
