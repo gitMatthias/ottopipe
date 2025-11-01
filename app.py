@@ -112,13 +112,14 @@ if st.button("🔄 Tabellen und Zusatzzahlen abrufen"):
             # Zusatzspielzahlen holen
             try:
                 datum_text, spiel77, super6 = get_latest_bonus_numbers()
-                st.subheader(f"🎯 Aktuelle Zusatzspielzahlen ({datum_text})")
-                st.markdown(f"**Spiel 77:** `{spiel77}`")
-                st.markdown(f"**SUPER 6:** `{super6}`")
+                st.subheader(f"🎯 Aktuelle Zusatzspielzahlen")
+                st.subheader(f"  ({datum_text})")
+                st.markdown(f"**77:** `{spiel77}`")
+                st.markdown(f"**6:** `{super6}`")
             except Exception as e:
                 st.warning(f"Fehler beim Laden der Zusatzspielzahlen: {e}")
 
-            st.success(f"{len(results)} Dateien erfolgreich gespeichert!")
+            st.success(f"{len(results)} Dateien erfolgreich geladen!")
 
         except Exception as e:
             st.error(f"Fehler beim Abrufen: {e}")
@@ -131,17 +132,17 @@ if st.button("🔄 Tabellen und Zusatzzahlen abrufen"):
             zip_file.write(file_path, arcname=file_path.name)
     zip_buffer.seek(0)
 
+    st.text("Klicke auf den Button, um alle Tabellen gesammelt als ZIP-Datei herunterzuladen.")
     st.download_button(
-        label="📦 Alle Tabellen als ZIP herunterladen",
+        label="💾 Alle Tabellen als ZIP herunterladen",
         data=zip_buffer,
         file_name="tabellen.zip",
         mime="application/zip"
     )
 
-    st.info("Klicke auf den Button, um alle Tabellen gesammelt als ZIP-Datei herunterzuladen.")
-
     # 📊 Vorschau der Tabellen
-    st.subheader("📊 Extrahierte Tabellen")
+    st.subheader("⚽ Extrahierte Tabellen")
+    st.info("In der gewünschten Tabelle alles außer der Kopfzeile markieren (den grauen Bereich).\nDie Markierung kopieren und in Excel einfügen.")
     for file_path, html in results:
         st.markdown(f"### 📄 {file_path.name}")
         st.markdown(html, unsafe_allow_html=True)

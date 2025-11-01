@@ -6,6 +6,7 @@ Dieses Tool lädt die neuesten drei TOTO-Ergebniswette-Tabellen von [westlotto.d
 
 ## 🚀 Features
 
+- Abruf der aktuellen Ergebnisse von Spiel77 und Super6
 - Abruf der drei aktuellsten Spieltage
 - HTML-Export der Tabellen inklusive vollständiger `<table>`-Header und Formatierung
 - ZIP-Download aller Dateien direkt über die Weboberfläche
@@ -44,7 +45,7 @@ beautifulsoup4
 ```txt
 services:
   - type: web
-    name: westlotto-scraper
+    name: ottopipe-scraper
     env: python
     buildCommand: pip install -r requirements.txt
     startCommand: streamlit run app.py
@@ -71,11 +72,11 @@ Die App ist erreichbar unter https://ottopipe-0g3q.onrender.com
 Klicke auf „🔄 Tabellen abrufen und speichern“
 
 Lade die ZIP-Datei mit den HTML-Tabellen herunter
+oder
+Markiere den grauen Teil der gewünschten Tabelle, kopiere ihn und füge in per Rechtsklick in Excel ein
 
 🛡️ Hinweise
 Kein Playwright nötig — die Seite liefert statisches HTML
-
-Keine Systempakete erforderlich — ideal für Render Free Tier
-
+Keine Systempakete erforderlich
 Die Dateien werden lokal im Ordner downloads/ gespeichert und gepackt
 
